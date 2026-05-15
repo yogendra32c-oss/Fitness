@@ -68,7 +68,8 @@ input,textarea{width:100%;background:#121928;border:1px solid #273148;border-rad
 .small{font-size:.83rem;color:var(--muted)}
 .glow{box-shadow:0 0 30px rgba(122,108,255,.3)}
 
-.focus-mode{border:1px solid rgba(122,108,255,.45)}
+.focus-mode{border:1px solid rgba(122,108,255,.45);min-height:78dvh;display:flex;flex-direction:column;gap:10px}
+.focus-progress{font-size:.8rem;color:#b8c8ff;letter-spacing:.08em;text-transform:uppercase}
 .exercise-nav{display:flex;justify-content:space-between;align-items:center;margin:10px 0}
 .coach-banner{background:rgba(0,214,255,.12);border:1px solid rgba(0,214,255,.25);padding:10px;border-radius:12px;margin:8px 0;font-weight:600}
 .guide summary{cursor:pointer;color:#b8c8ff;font-weight:700;margin-top:8px}
@@ -83,3 +84,13 @@ input,textarea{width:100%;background:#121928;border:1px solid #273148;border-rad
 .spark.big{height:80px}
 .spark i{display:block;width:7px;background:linear-gradient(180deg,var(--accent-2),var(--accent));border-radius:3px}
 button{touch-action:manipulation}
+.exercise-slide{background:linear-gradient(145deg, rgba(122,108,255,.14), rgba(0,214,255,.09));min-height:56dvh}
+.exercise-title{font-size:2rem;line-height:1.08;letter-spacing:.02em}
+.exercise-content{display:grid !important;gap:10px}
+.set-row{padding:12px;border:1px solid rgba(255,255,255,.12)}
+.set-inputs input{font-size:1.4rem;font-weight:800;padding:12px}
+.complete-toggle{font-size:.85rem;padding:10px 12px}
+.cue-row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.cue-chip{background:#162641;border:1px solid #2e4f78;border-radius:999px;padding:5px 9px;font-size:.72rem;color:#b9d8ff;text-transform:capitalize}
+.pr-toast.in-app{position:static;transform:none;left:auto;top:auto;margin:6px 0 4px;animation:prinline 1.4s ease}
+@keyframes prinline{0%{opacity:0;transform:translateY(-6px)}20%{opacity:1}100%{opacity:.1;transform:translateY(-2px)}}

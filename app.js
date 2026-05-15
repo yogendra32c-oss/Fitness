@@ -35,7 +35,7 @@ formGuides['One-arm Dumbbell Row'] = {
 
 const state = load() || {
   workouts: [], bodyweight: [], active: null, selectedDay: 'Push', view: 'home', xp: 0, level: 1, streak: 0,
-  prHistory: {}, coachingIdx: 0
+  prHistory: {}, coachingIdx: 0, prToast: null
 };
 
 const coachingTips = ['Control the lowering phase', 'Keep core tight', 'Avoid swinging', 'Drive through full range', 'Own every rep'];
@@ -43,7 +43,15 @@ const app = document.getElementById('app');
 const today = () => new Date().toISOString().slice(0, 10);
 const fmt = d => new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
-function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+let saveScheduled = false;
+function save() {
+  if (saveScheduled) return;
+  saveScheduled = true;
+  requestAnimationFrame(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    saveScheduled = false;
+  });
+}
 function load() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } }
 
 function workoutTypeForDate(d = new Date()) { return weeklySchedule[d.getDay()]; }
@@ -119,24 +127,30 @@ function activeWorkoutMarkup() {
   const total = act.exercises.flatMap(e => e.sets).length;
   const done = act.exercises.flatMap(e => e.sets).filter(s => s.done).length;
   const ex = act.exercises[act.index];
-  return `<section class="card glow focus-mode"><div class="section-title"><h3>${act.type} Focus Mode</h3><span class="pill">${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}</span></div>
+  const prBanner = state.prToast ? `<div class="pr-toast in-app">✨ NEW PR · +${state.prToast.bonus} XP · ${state.prToast.type.toUpperCase()}</div>` : '';
+  return `<section class="card glow focus-mode"><div class="section-title"><h3>${act.type} Focus Mode</h3><span id="timerPill" class="pill">${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}</span></div>
   <div class="progress"><span style="width:${Math.round((done / total) * 100)}%"></span></div>
+  <div class="focus-progress">Exercise ${act.index + 1} of ${act.exercises.length}</div>
+  ${prBanner}
   <div class="exercise-nav"><button class="mini-btn" id="prevEx">◀</button><p>${act.index + 1}/${act.exercises.length}</p><button class="mini-btn" id="nextEx">▶</button></div>
   ${exerciseMarkup(ex, act.index)}
   <label>Notes<textarea id="workoutNotes" placeholder="felt stronger today..."></textarea></label></section>`;
 }
 
 function exerciseMarkup(e, ei) {
-  return `<article class="exercise card open" data-ei="${ei}"><div class="exercise-header"><div><strong>${e.name}</strong><div class="exercise-meta">Target ${e.target} · Prev ${previous(e.name)}</div></div></div>
+  const cues = ['control the lowering', 'don’t swing', 'brace core', 'full range of motion'];
+  const cueMarkup = cues.map(c => `<span class="cue-chip">${c}</span>`).join('');
+  return `<article class="exercise card open exercise-slide" data-ei="${ei}"><div class="exercise-header"><div><strong class="exercise-title">${e.name}</strong><div class="exercise-meta">Target ${e.target} · Prev ${previous(e.name)}</div></div></div>
   <div class="coach-banner">Technique: ${coachingTips[(state.coachingIdx + ei) % coachingTips.length]}</div>
+  <div class="cue-row">${cueMarkup}</div>
   <div class="exercise-content">${e.sets.map((s, si) => setRow(ei, si, s)).join('')}</div>
-  <details class="guide"><summary>Exercise Form Guide</summary>
+  <details class="guide" open><summary>Exercise Form Guide</summary>
     <ul><li><b>Setup:</b> ${guideFor(e.name).setup}</li><li><b>Execution:</b> ${guideFor(e.name).execution}</li><li><b>Breathing:</b> ${guideFor(e.name).breathing}</li><li><b>Common mistakes:</b> ${guideFor(e.name).mistakes}</li><li><b>Target muscles:</b> ${guideFor(e.name).targets}</li></ul>
   </details></article>`;
 }
 
 function setRow(ei, si, s) {
-  return `<div class="set-row card" data-ei="${ei}" data-si="${si}"><div class="set-meta"><span class="pill set-label">Set ${s.n}</span><button class="complete-toggle ${s.done ? 'done' : ''}">${s.done ? '✓' : '○'}</button></div>
+  return `<div class="set-row card" data-ei="${ei}" data-si="${si}"><div class="set-meta"><span class="pill set-label">Set ${s.n}</span><button class="complete-toggle ${s.done ? 'done' : ''}">${s.done ? '✓ COMPLETE' : 'TAP TO COMPLETE'}</button></div>
   <div class="set-inputs"><label>Reps<div class="quick-wrap"><input type="number" min="0" inputmode="numeric" class="reps-input" value="${s.reps}" /><button class="mini-btn rep-plus">+1</button></div></label>
   <label>Weight (kg)<div class="quick-wrap"><input type="number" min="0" step="0.5" inputmode="decimal" class="weight-input" value="${s.weight}" /><button class="mini-btn weight-plus">+2.5</button></div></label></div>
   <div class="weight-chips">${quickWeights.map(w => `<button class="chip" data-w="${w}">${w}kg</button>`).join('')}</div></div>`;
@@ -179,15 +193,30 @@ function previous(name) {
   return `${bestR} reps @ ${bestW}kg`;
 }
 
+function allTimeBest(name) {
+  const fromHistory = state.workouts
+    .flatMap(w => w.exercises.filter(e => e.name === name))
+    .flatMap(e => e.sets);
+  const fromActive = state.active ? state.active.exercises.filter(e => e.name === name).flatMap(e => e.sets) : [];
+  const allSets = [...fromHistory, ...fromActive];
+  return {
+    reps: Math.max(0, ...allSets.map(s => Number(s.reps) || 0)),
+    weight: Math.max(0, ...allSets.map(s => Number(s.weight) || 0))
+  };
+}
+
 function detectPR(name, set) {
-  const p = state.prHistory[name] || { reps: 0, weight: 0 };
+  const p = allTimeBest(name);
   const reps = Number(set.reps) || 0, weight = Number(set.weight) || 0;
-  if (reps > p.reps || weight > p.weight) {
+  const repPR = reps > p.reps;
+  const weightPR = weight > p.weight;
+  if (repPR || weightPR) {
     state.prHistory[name] = { reps: Math.max(reps, p.reps), weight: Math.max(weight, p.weight) };
-    state.xp += 30;
+    const bonus = repPR && weightPR ? 60 : 35;
+    state.xp += bonus;
     if (navigator.vibrate) navigator.vibrate([100, 60, 160]);
-    const pr = document.createElement('div'); pr.className = 'pr-toast'; pr.textContent = '✨ NEW PR +30XP';
-    document.body.appendChild(pr); setTimeout(() => pr.remove(), 1400);
+    state.prToast = { type: repPR && weightPR ? 'weight + reps' : repPR ? 'reps' : 'weight', bonus };
+    setTimeout(() => { state.prToast = null; renderWorkout(); }, 1400);
   }
 }
 
@@ -241,5 +270,11 @@ function renderProgress() {
 
 document.querySelectorAll('.nav-btn').forEach(b => b.onclick = () => { state.view = b.dataset.view; save(); render(); });
 document.getElementById('themePulseBtn').onclick = () => document.body.animate([{ filter: 'brightness(1)' }, { filter: 'brightness(1.2)' }, { filter: 'brightness(1)' }], { duration: 450 });
-setInterval(() => { if (state.view === 'workout' && state.active) renderWorkout(); }, 1000);
+setInterval(() => {
+  if (state.view !== 'workout' || !state.active) return;
+  const pill = document.getElementById('timerPill');
+  if (!pill) return;
+  const elapsed = Math.floor((Date.now() - state.active.startedAt) / 1000);
+  pill.textContent = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
+}, 1000);
 render();
