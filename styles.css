@@ -67,3 +67,19 @@ input,textarea{width:100%;background:#121928;border:1px solid #273148;border-rad
 @keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
 .small{font-size:.83rem;color:var(--muted)}
 .glow{box-shadow:0 0 30px rgba(122,108,255,.3)}
+
+.focus-mode{border:1px solid rgba(122,108,255,.45)}
+.exercise-nav{display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+.coach-banner{background:rgba(0,214,255,.12);border:1px solid rgba(0,214,255,.25);padding:10px;border-radius:12px;margin:8px 0;font-weight:600}
+.guide summary{cursor:pointer;color:#b8c8ff;font-weight:700;margin-top:8px}
+.guide ul{padding-left:18px}
+.weight-chips{display:flex;gap:6px;overflow:auto;margin-top:8px}
+.chip{border:none;background:#1c2a45;color:#cde1ff;padding:7px 9px;border-radius:10px}
+.pr-toast{position:fixed;top:90px;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:14px;background:linear-gradient(90deg,#6f5cff,#00d6ff);font-weight:800;z-index:200;box-shadow:0 0 25px rgba(0,214,255,.7);animation:prpop 1.4s ease}
+@keyframes prpop{0%{transform:translateX(-50%) scale(.7);opacity:0}20%{opacity:1}100%{transform:translateX(-50%) scale(1.06);opacity:0}}
+.recover-row{display:grid;grid-template-columns:84px 1fr;gap:8px;align-items:center;margin:8px 0;text-transform:capitalize}
+.graph-row{display:grid;grid-template-columns:140px 1fr;gap:8px;align-items:end;margin:6px 0}
+.spark{display:flex;align-items:flex-end;gap:3px;height:48px;padding:6px;background:#101a2c;border-radius:10px;border:1px solid #2a3650;overflow:auto}
+.spark.big{height:80px}
+.spark i{display:block;width:7px;background:linear-gradient(180deg,var(--accent-2),var(--accent));border-radius:3px}
+button{touch-action:manipulation}
