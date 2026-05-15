@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>PPL Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-hero glass">
+      <div>
+        <p class="muted" id="greeting">Welcome back</p>
+        <h1>Gym Progression Command Center</h1>
+      </div>
+      <button class="icon-btn" id="themePulseBtn" aria-label="Pulse">
+        ⚡
+      </button>
+    </header>
+
+    <main id="app"></main>
+
+    <nav class="bottom-nav glass" aria-label="Primary navigation">
+      <button data-view="home" class="nav-btn active">Home</button>
+      <button data-view="workout" class="nav-btn">Workout</button>
+      <button data-view="history" class="nav-btn">History</button>
+      <button data-view="progress" class="nav-btn">Progress</button>
+    </nav>
+  </div>
+
+  <template id="setRowTemplate">
+    <div class="set-row card">
+      <div class="set-meta">
+        <span class="pill set-label"></span>
+        <button class="complete-toggle" title="Toggle complete">○</button>
+      </div>
+      <div class="set-inputs">
+        <label>Reps
+          <div class="quick-wrap">
+            <input type="number" min="0" inputmode="numeric" class="reps-input" />
+            <button class="mini-btn rep-plus">+1</button>
+          </div>
+        </label>
+        <label>Weight (kg)
+          <div class="quick-wrap">
+            <input type="number" min="0" step="0.5" inputmode="decimal" class="weight-input" />
+            <button class="mini-btn weight-plus">+2.5</button>
+          </div>
+        </label>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
